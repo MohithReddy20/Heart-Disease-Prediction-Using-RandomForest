@@ -20,12 +20,16 @@ export default function Signup() {
     setSuccess("");
 
     try {
-      await api.post("/signup", {
+      const { data } = await api.post("/signup", {
         un: form.username,
         em: form.email,
       });
-      setSuccess("Account created. Check your email for your temporary password.");
-      setTimeout(() => navigate("/login"), 1600);
+      setSuccess(
+        data?.message ||
+          "Account created. Check your email for your temporary password."
+      );
+      const pauseMs = data?.temporary_password != null ? 5000 : 1600;
+      setTimeout(() => navigate("/login"), pauseMs);
     } catch (err) {
       setError(err.response?.data?.message || "Signup failed. Try again.");
     } finally {

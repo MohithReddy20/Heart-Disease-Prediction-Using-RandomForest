@@ -1,8 +1,9 @@
 from flask import Flask, render_template, request, redirect, session, url_for, send_from_directory, abort
 from flask_cors import CORS
 from sqlite3 import connect
-from flask_mail import Mail, Message
 from random import randrange
+import smtplib
+from email.message import EmailMessage
 from werkzeug.security import generate_password_hash, check_password_hash
 import pickle
 import pandas as pd
@@ -91,9 +92,9 @@ app.config["MAIL_USERNAME"] = os.getenv("MAIL_USERNAME")
 app.config["MAIL_PASSWORD"] = os.getenv("MAIL_PASSWORD")
 app.config["MAIL_USE_TLS"] = True
 app.config["MAIL_USE_SSL"] = False
-app.config["MAIL_DEFAULT_SENDER"] = "yannammohithreddy@gmail.com"
-
-mail = Mail(app)
+app.config["MAIL_DEFAULT_SENDER"] = os.getenv(
+    "MAIL_DEFAULT_SENDER", "yannammohithreddy@gmail.com"
+)
 
 ensure_db_schema()
 
@@ -106,13 +107,20 @@ with open(MODEL_PATH, "rb") as f:
 # logging.info("Model loaded successfully")
 
 # ---------------- HELPER: Send Password Email ----------------
+def _mail_credentials_configured():
+    u = (os.getenv("MAIL_USERNAME") or "").strip()
+    p = (os.getenv("MAIL_PASSWORD") or "").strip()
+    return bool(u and p)
+
+
 def send_password_email(recipient_email, username, password, subject="Your Heart Disease Prediction System Password"):
-    try:
-        msg = Message(
-            subject=subject,
-            recipients=[recipient_email]
-        )
-        msg.body = f"""Hello {username},
+    """
+    Returns: "sent" | "skipped" (no MAIL_* on server) | "failed" (SMTP error/timeout).
+
+    Uses smtplib with an explicit timeout so Gunicorn workers are not blocked for 30s+ when
+    SMTP is unreachable (common on misconfigured deploys).
+    """
+    body = f"""Hello {username},
 
 Your temporary password for the Heart Disease Prediction System is:
 
@@ -123,11 +131,26 @@ Please log in and keep this password safe.
 — Heart Disease Prediction System
 (Educational & Research Use Only)
 """
-        mail.send(msg)
-        return True
+    if not _mail_credentials_configured():
+        logging.info("MAIL_USERNAME/MAIL_PASSWORD not set; skipping SMTP send")
+        return "skipped"
+    try:
+        msg = EmailMessage()
+        msg["Subject"] = subject
+        msg["From"] = app.config["MAIL_DEFAULT_SENDER"]
+        msg["To"] = recipient_email
+        msg.set_content(body)
+        timeout = int(os.environ.get("MAIL_SMTP_TIMEOUT", "20"))
+        with smtplib.SMTP(
+            app.config["MAIL_SERVER"], int(app.config["MAIL_PORT"]), timeout=timeout
+        ) as smtp:
+            smtp.starttls()
+            smtp.login(app.config["MAIL_USERNAME"], app.config["MAIL_PASSWORD"])
+            smtp.send_message(msg)
+        return "sent"
     except Exception as e:
-        logging.error(f"Mail sending failed: {e}")
-        return False
+        logging.error("Mail sending failed: %s", e)
+        return "failed"
 
 # ---------------- Explanations ----------------
 def generate_explanations(age, cp, BP, CH, maxhr, STD, fluro, Th):
@@ -889,18 +912,29 @@ def signup():
                 )
                 con.commit()
 
-            # Send password via email
-            sent = send_password_email(em, un, pw, subject="Welcome — Your Login Password")
+            mail_status = send_password_email(
+                em, un, pw, subject="Welcome — Your Login Password"
+            )
 
-            if sent:
+            if mail_status == "sent":
                 message = "Account created successfully! Password sent to email."
+            elif mail_status == "skipped":
+                message = (
+                    "Account created. Outbound email is not configured on this server. "
+                    f"Your temporary password is: {pw}"
+                )
             else:
-                print(f"[FALLBACK] Password for {un}: {pw}")
-                message = "Account created, but email delivery failed."
+                logging.warning("Signup email failed for %s; user can use returned password", un)
+                message = (
+                    "Account created, but email delivery failed. "
+                    f"Your temporary password is: {pw}"
+                )
 
-            # 🔁 RETURN JSON OR HTML BASED ON REQUEST
             if request.is_json:
-                return jsonify({"message": message}), 200
+                payload = {"message": message}
+                if mail_status in ("skipped", "failed"):
+                    payload["temporary_password"] = pw
+                return jsonify(payload), 200
             else:
                 return render_template("login.html", msg=message)
 
@@ -1020,21 +1054,30 @@ def forgot():
                 )
                 con.commit()
 
-            # Send email
-            sent = send_password_email(
+            mail_status = send_password_email(
                 em, un, new_pw,
-                subject="Your New Password — Heart Disease Prediction System"
+                subject="Your New Password — Heart Disease Prediction System",
             )
 
-            if sent:
+            if mail_status == "sent":
                 msg = "A new password has been sent to your registered email."
+            elif mail_status == "skipped":
+                msg = (
+                    "Password updated. Email is not configured on this server. "
+                    f"Your new password is: {new_pw}"
+                )
             else:
-                print(f"[FALLBACK] New password for {un}: {new_pw}")
-                msg = "Password reset, but email delivery failed."
+                logging.warning("Forgot-password email failed for %s", un)
+                msg = (
+                    "Password reset, but email delivery failed. "
+                    f"Your new password is: {new_pw}"
+                )
 
-            # 🔁 JSON vs HTML response
             if request.is_json:
-                return jsonify({"message": msg}), 200
+                payload = {"message": msg}
+                if mail_status in ("skipped", "failed"):
+                    payload["temporary_password"] = new_pw
+                return jsonify(payload), 200
 
             return render_template("login.html", msg=msg)
 
