@@ -21,7 +21,8 @@ One **Web Service** serves **Flask + the built React app** on the **same HTTPS U
    - **Build:** `chmod +x scripts/build.sh && ./scripts/build.sh && pip install -r requirements.txt`
    - **Start:** `cd p1_heartdiseaseprediction && gunicorn app:app --bind 0.0.0.0:$PORT --workers 1`
 4. **Environment variables:** set `FLASK_SECRET_KEY` (Render can generate one). Optional: `MAIL_USERNAME`, `MAIL_PASSWORD` for Flask-Mail. On Render, `RENDER` is set automatically (enables secure session cookies).
-5. **Node:** `render.yaml` sets `NODE_VERSION` so `npm ci` works during the build.
+5. **Node:** Set **`NODE_VERSION=22.12.0`** (or newer 22.x). Vite 8 needs **20.19+ or 22.12+**; **20.18** fails on Render (rolldown native binding error).
+6. **Python:** Set **`PYTHON_VERSION=3.12.3`** so numpy/sklearn wheels install cleanly; the Render default **3.14** can break older pins.
 
 After deploy, open your `*.onrender.com` URL; the UI is served by Flask from `p1_heartdiseaseprediction/static/spa/` (created by `scripts/build.sh`).
 
