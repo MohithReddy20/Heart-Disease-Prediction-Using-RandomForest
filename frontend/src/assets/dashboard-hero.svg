@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 560 360" fill="none" aria-hidden="true">
+  <defs>
+    <linearGradient id="dh-bg" x1="0" y1="0" x2="560" y2="360" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#0f766e" stop-opacity="0.35"/>
+      <stop offset="0.5" stop-color="#115e59" stop-opacity="0.2"/>
+      <stop offset="1" stop-color="#0f172a" stop-opacity="0.5"/>
+    </linearGradient>
+    <linearGradient id="dh-line" x1="0" y1="0" x2="560" y2="0" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#5eead4"/>
+      <stop offset="1" stop-color="#2dd4bf"/>
+    </linearGradient>
+  </defs>
+  <rect width="560" height="360" rx="28" fill="url(#dh-bg)"/>
+  <rect x="32" y="32" width="496" height="296" rx="20" stroke="rgba(255,255,255,0.12)" stroke-width="1"/>
+  <path d="M60 220 L100 220 L115 165 L140 255 L165 140 L190 230 L215 200 L240 200 L260 200 L280 200 L300 200 L320 200 L340 200 L360 200 L380 200 L400 200 L420 200 L440 200 L500 200" stroke="url(#dh-line)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" fill="none" opacity="0.95"/>
+  <circle cx="140" cy="255" r="6" fill="#99f6e4"/>
+  <circle cx="165" cy="140" r="6" fill="#99f6e4"/>
+  <circle cx="380" cy="200" r="5" fill="rgba(255,255,255,0.35)"/>
+  <path d="M380 88 C 360 108 360 148 400 168 C 440 148 440 108 420 88 C 410 78 390 78 380 88 Z" fill="rgba(45,212,191,0.25)" stroke="#5eead4" stroke-width="1.5" stroke-linejoin="round"/>
+  <text x="48" y="72" fill="rgba(255,255,255,0.45)" font-family="system-ui, sans-serif" font-size="13" font-weight="600" letter-spacing="0.08em">RISK SIGNAL</text>
+  <text x="48" y="98" fill="rgba(255,255,255,0.85)" font-family="system-ui, sans-serif" font-size="22" font-weight="700">Assessment overview</text>
+</svg>

@@ -1,0 +1,1136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Heart Disease Risk Assessment</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <!-- Bootstrap 5 -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <style>
+        :root {
+            --primary: #0d9488;
+            --primary-hover: #0f766e;
+            --bg-soft: #f7f9fb;
+            --panel-left: #fff36b;
+            --panel-right: #c0ebe6;
+            --text-muted: #6b7280;
+        }
+
+        body {
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            font-size: 16px;
+            background-color: var(--bg-soft);
+        }
+
+        .split {
+            height: 100vh;
+            width: 50%;
+            position: fixed;
+            top: 0;
+            padding: 2rem;
+        }
+
+.right {
+    right: 0;
+    background-color: var(--panel-right);
+    overflow-y: auto;   /* ✅ THIS enables scrolling */
+	scroll-behavior: smooth;
+}
+
+        .left {
+            left: 0;
+            background-color: var(--panel-left);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+        }
+
+        .right {
+            right: 0;
+            background-color: var(--panel-right);
+            overflow-y: auto;
+        }
+
+        .left img {
+            width: 260px;
+            border-radius: 18px;
+            margin-bottom: 1rem;
+        }
+
+        .form-card {
+            background: #ffffff;
+            padding: 2.2rem;
+            border-radius: 16px;
+            box-shadow: 0 12px 30px rgba(0,0,0,0.12);
+            max-width: 520px;
+            margin: 2rem auto;
+        }
+
+        .form-card h4 {
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+
+        .form-card p.subtitle {
+            font-size: 14px;
+            color: var(--text-muted);
+            margin-bottom: 1.8rem;
+        }
+
+        .section-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: #374151;
+            margin: 1.6rem 0 0.6rem;
+            border-bottom: 1px solid #e5e7eb;
+            padding-bottom: 4px;
+        }
+
+        .form-label {
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .helper-text {
+            font-size: 13px;
+            color: var(--text-muted);
+            margin-top: 4px;
+        }
+
+        .btn-primary {
+            background-color: var(--primary);
+            border: none;
+            border-radius: 10px;
+            padding: 12px;
+            font-weight: 500;
+        }
+
+        .btn-primary:hover {
+            background-color: var(--primary-hover);
+        }
+
+        .result-box {
+            margin-top: 1.2rem;
+            padding: 1rem;
+            border-radius: 10px;
+            background-color: #ecfeff;
+            border: 1px solid #67e8f9;
+            font-weight: 600;
+            text-align: center;
+        }
+
+        /* Dashboard polish (Point #10 visual hierarchy) */
+        .results-card {
+            margin-top: 1.1rem;
+            background: #ffffff;
+            border: 1px solid rgba(15, 23, 42, 0.10);
+            border-radius: 14px;
+            padding: 14px;
+            box-shadow: 0 10px 26px rgba(2, 6, 23, 0.10);
+        }
+
+        .section-card {
+            margin-top: 10px;
+            background: #ffffff;
+            border: 1px solid rgba(15, 23, 42, 0.08);
+            border-radius: 12px;
+            padding: 12px;
+        }
+
+        .hero-kpi {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+        }
+
+        .hero-score {
+            font-size: 28px;
+            font-weight: 800;
+            letter-spacing: -0.02em;
+            line-height: 1.1;
+        }
+
+        .hero-label {
+            font-size: 12px;
+            color: var(--text-muted);
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+        }
+
+        .hero-badge {
+            font-weight: 700;
+            border-radius: 999px;
+            padding: 6px 10px;
+            border: 1px solid rgba(15, 23, 42, 0.10);
+            background: rgba(255,255,255,0.85);
+        }
+
+        .hero-badge.low-risk { border-color: rgba(16,185,129,0.45); color: #065f46; background: rgba(16,185,129,0.08); }
+        .hero-badge.moderate-risk { border-color: rgba(234,179,8,0.55); color: #92400e; background: rgba(234,179,8,0.10); }
+        .hero-badge.high-risk { border-color: rgba(239,68,68,0.45); color: #7f1d1d; background: rgba(239,68,68,0.08); }
+
+        .risk-progress {
+            height: 10px;
+            border-radius: 999px;
+            background: rgba(15, 23, 42, 0.08);
+            overflow: hidden;
+        }
+
+        .risk-progress > div {
+            height: 100%;
+            width: 0%;
+            border-radius: 999px;
+            transition: width 450ms ease;
+        }
+
+        .risk-bar-low { background: #10b981; }
+        .risk-bar-moderate { background: #eab308; }
+        .risk-bar-high { background: #ef4444; }
+
+        .collapse-toggle {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .collapse-toggle h6 {
+            margin: 0;
+            font-weight: 800;
+            font-size: 14px;
+        }
+
+        .kpi-row {
+            display: flex;
+            align-items: baseline;
+            justify-content: space-between;
+            gap: 10px;
+        }
+
+        .pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            border-radius: 999px;
+            padding: 6px 10px;
+            font-size: 13px;
+            font-weight: 700;
+            border: 1px solid rgba(15, 23, 42, 0.12);
+            background: rgba(248, 250, 252, 0.9);
+            margin: 6px 6px 0 0;
+        }
+
+        .pill.primary { border-color: rgba(239,68,68,0.35); background: rgba(239,68,68,0.08); }
+        .pill.secondary { border-color: rgba(234,179,8,0.40); background: rgba(234,179,8,0.10); }
+        .pill.additional { border-color: rgba(2,132,199,0.25); background: rgba(2,132,199,0.08); }
+
+        .mini-actions {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .mini-link {
+            border: none;
+            background: transparent;
+            padding: 0;
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--primary);
+            text-decoration: underline;
+        }
+
+        .muted {
+            color: var(--text-muted);
+            font-size: 13px;
+        }
+
+        @media (max-width: 768px) {
+            .split {
+                width: 100%;
+                position: relative;
+                height: auto;
+            }
+
+            .left {
+                padding: 1.5rem 1.25rem;
+            }
+
+            .right {
+                padding: 1.25rem;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .split {
+                min-height: 100vh;
+                width: 50%;
+                position: relative;
+                padding: 2rem;
+            }
+        }
+
+        /* LOW → Green */
+        .low-risk {
+            background-color: #ecfdf5;
+            border: 1px solid #10b981;
+            color: #065f46;
+        }
+
+        /* MODERATE → Yellow */
+        .moderate-risk {
+            background-color: #fefce8;
+            border: 1px solid #eab308;
+            color: #92400e;
+        }
+
+        /* HIGH → Red */
+        .high-risk {
+            background-color: #fef2f2;
+            border: 1px solid #ef4444;
+            color: #7f1d1d;
+        }
+    </style>
+</head>
+
+<body>
+
+<!-- LEFT PANEL -->
+<div class="split left">
+    <div>
+        <img src="https://i.pinimg.com/564x/f8/52/9c/f8529c3ee32672146fb127cf1e27af54.jpg" alt="Heart Illustration">
+        <h4>Heart Disease Risk Assessment</h4>
+        <p class="mt-2">Welcome, <strong>{{ name }}</strong></p>
+        <p style="font-size:14px;color:#374151;">
+            A clinical decision-support tool for early risk assessment.
+        </p>
+    </div>
+</div>
+
+<!-- RIGHT PANEL -->
+<div class="split right">
+    <div class="form-card">
+
+        <h4>Heart Risk Assessment</h4>
+        <p class="subtitle">
+            Enter the following clinical parameters to assess potential heart disease risk.
+        </p>
+
+        <form id="riskForm" action="/check" method="POST">
+
+            <!-- BASIC DETAILS -->
+            <div class="section-title">Basic Information</div>
+
+            <div class="mb-3">
+                <label class="form-label">Age (years)</label>
+                <input type="number" name="age" class="form-control" min="1" max="120" value="{{ form_data.age if form_data else '' }}" required>
+            </div>
+
+            <!-- SYMPTOMS -->
+            <div class="section-title">Symptoms</div>
+
+            <label class="form-label">Chest Pain Type</label>
+            <div class="form-check">
+                <input class="form-check-input" type="radio" name="r1" value="1" {% if form_data and form_data.r1 == '1' %}checked{% endif %} checked>
+                <label class="form-check-label">Type 1 (Typical Angina)</label>
+            </div>
+            <div class="form-check">
+                <input class="form-check-input" type="radio" name="r1" value="2" {% if form_data and form_data.r1 == '2' %}checked{% endif %}>
+                <label class="form-check-label">Type 2 (Atypical Angina)</label>
+            </div>
+            <div class="form-check">
+                <input class="form-check-input" type="radio" name="r1" value="3" {% if form_data and form_data.r1 == '3' %}checked{% endif %}>
+                <label class="form-check-label">Type 3 (Non-anginal Pain)</label>
+            </div>
+            <div class="form-check mb-3">
+                <input class="form-check-input" type="radio" name="r1" value="4" {% if form_data and form_data.r1 == '4' %}checked{% endif %}>
+                <label class="form-check-label">Type 4 (Asymptomatic)</label>
+            </div>
+
+            <!-- MEASUREMENTS -->
+            <div class="section-title">Clinical Measurements</div>
+
+            <div class="mb-3">
+                <label class="form-label">Resting Blood Pressure (mm Hg)</label>
+                <input type="number" name="BP" id="bpInput" class="form-control" min="80" max="200" value="{{ form_data.BP if form_data else '' }}" required>
+                <div class="helper-text" id="bpHint"></div>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Serum Cholesterol (mg/dl)</label>
+                <input type="number" name="CH" id="cholInput" class="form-control" min="100" max="400" value="{{ form_data.CH if form_data else '' }}" required>
+                <div class="helper-text" id="cholHint"></div>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Maximum Heart Rate Achieved</label>
+                <input type="number" name="maxhr" id="maxhrInput" class="form-control" min="60" max="220" value="{{ form_data.maxhr if form_data else '' }}" required>
+                <div class="helper-text" id="maxhrHint"></div>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">ST Depression</label>
+                <input type="number" step="any" name="STD" class="form-control" min="0" max="6" value="{{ form_data.STD if form_data else '' }}" required>
+                <div class="helper-text">Exercise-induced depression relative to rest</div>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Number of Vessels (Fluoroscopy)</label>
+                <input type="number" name="fluro" class="form-control" min="0" max="3" value="{{ form_data.fluro if form_data else '' }}" required>
+            </div>
+
+            <div class="mb-4">
+                <label class="form-label">Thallium Value</label>
+                <input type="number" name="Th" class="form-control" value="{{ form_data.Th if form_data else '' }}" required>
+            </div>
+
+            <button type="submit" id="predictBtn" class="btn btn-primary w-100">
+                Run Risk Prediction
+            </button>
+            <button type="button" id="simulateBtn" class="btn btn-outline-dark w-100 mt-2">
+                Simulate Changes
+            </button>
+
+            <div id="loading" class="text-center mt-3" style="display:none;">
+                <div class="spinner-border text-primary" role="status"></div>
+                <p style="font-size:14px;">Analyzing your data...</p>
+            </div>
+
+            <div id="resultContainer" class="results-card {% if not (msg or sim_prediction) %}d-none{% endif %}">
+            
+                {% if msg %}
+                <div id="main-result" class="result-box 
+                    {% if risk == 'Low' %}low-risk
+                    {% elif risk == 'Moderate' %}moderate-risk
+                    {% else %}high-risk
+                    {% endif %}
+                ">
+                    <!-- Keep for fallback; React hero will render above this block -->
+                    <div class="hero-label">Risk Score (%)</div>
+                    <div class="hero-kpi">
+                        <div class="hero-score"><span id="riskScore">{{ probability }}</span>%</div>
+                        <div id="riskBadge" class="hero-badge {% if risk == 'Low' %}low-risk{% elif risk == 'Moderate' %}moderate-risk{% else %}high-risk{% endif %}">
+                            <span id="riskLevel">{{ risk }}</span>
+                        </div>
+                    </div>
+                    <div class="risk-progress mt-2" aria-hidden="true">
+                        <div id="riskBar" class="risk-bar-moderate"></div>
+                    </div>
+                    <div class="muted mt-2">
+                        This tool provides educational risk estimation. It is not a medical diagnosis.
+                    </div>
+                    <div class="muted mt-1">
+                        Confidence:
+                        <strong id="confidenceLevel">{{ confidence_level if confidence_level else '—' }}</strong>
+                        <span id="confidenceNote">
+                            {% if confidence_note %}— {{ confidence_note }}{% endif %}
+                        </span>
+                    </div>
+                    <div id="stabilityNote" class="muted mt-1" {% if not stability_near_threshold %}style="display:none;"{% endif %}>
+                        {% if stability_note %}{{ stability_note }}{% endif %}
+                    </div>
+                </div>
+                {% endif %}
+
+                {% if not msg %}
+                <div id="main-result" class="result-box" style="display:none;">
+                    <div class="hero-label">Risk Score (%)</div>
+                    <div class="hero-kpi">
+                        <div class="hero-score"><span id="riskScore">--</span>%</div>
+                        <div id="riskBadge" class="hero-badge moderate-risk"><span id="riskLevel">--</span></div>
+                    </div>
+                    <div class="risk-progress mt-2" aria-hidden="true">
+                        <div id="riskBar" class="risk-bar-moderate"></div>
+                    </div>
+                    <div class="muted mt-2">
+                        This tool provides educational risk estimation. It is not a medical diagnosis.
+                    </div>
+                    <div class="muted mt-1">
+                        Confidence:
+                        <strong id="confidenceLevel">—</strong>
+                        <span id="confidenceNote"></span>
+                    </div>
+                    <div id="stabilityNote" class="muted mt-1" style="display:none;"></div>
+                </div>
+                {% endif %}
+
+                <!-- React island placeholder (kept for later components) -->
+                <div id="riskHeroRoot" class="d-none"></div>
+
+                {% if sim_prediction %}
+                <div class="result-box mt-3" style="background:#fff7ed; border:1px solid #fb923c;">
+                    <strong>Simulation Result</strong><br>
+                    <strong>Risk Score (%):</strong> {{ sim_probability }}%<br>
+
+                    {% if sim_change is not none %}
+                        <strong>Change (%):</strong> 
+                        {{ sim_change }}% 
+                        ({{ sim_trend }})<br>
+
+                        <strong>Clinical Insight:</strong> {{ sim_explanation }}
+                    {% endif %}
+                </div>
+                {% endif %}
+
+                {% if not sim_prediction %}
+                <div id="simulationBox" class="result-box mt-3" style="background:#fff7ed; border:1px solid #fb923c; display:none;">
+                    <strong>Simulation Result</strong><br>
+                    <strong>Risk Score (%):</strong> <span id="simRiskScore">--</span>%<br>
+                    <strong>Change (%):</strong> <span id="simChange">--</span>% (<span id="simTrend">--</span>)<br>
+                    <strong>Clinical Insight:</strong> <span id="simInsight">--</span>
+                </div>
+                {% endif %}
+
+                <div id="comparisonBox" class="section-card" style="display:none; background:#f8fafc;">
+                    <div class="kpi-row">
+                        <h6 class="mb-0">Compared to Last Assessment</h6>
+                        <span id="comparisonTrend" class="muted"></span>
+                    </div>
+                    <div class="mt-2">
+                        <div class="muted">
+                            Previous Risk Score: <strong id="previousRiskScore">--</strong>%
+                        </div>
+                        <div class="muted">
+                            Change: <strong id="deltaPercent">--</strong>%
+                        </div>
+                    </div>
+                </div>
+
+                <div id="edgeWarningsBox" class="section-card" style="display:none; background:#fff7ed; border-color:#fb923c;">
+                    <div class="kpi-row">
+                        <h6 class="mb-0">Input Consistency Warning</h6>
+                        <span class="muted">Check values</span>
+                    </div>
+                    <ul id="edgeWarningsList" class="mb-0 mt-2"></ul>
+                </div>
+
+                {% if summary %}
+                <div class="section-card" style="background:#fff7ed; border-color:#fb923c; font-weight:700;">
+                    <span id="summaryText">{{ summary }}</span>
+                </div>
+                {% endif %}
+
+                {% if not summary %}
+                <div id="summaryBox" class="section-card" style="background:#fff7ed; border-color:#fb923c; font-weight:700; display:none;">
+                    <span id="summaryText"></span>
+                </div>
+                {% endif %}
+                
+                {% if narrative %}
+                <div class="section-card">
+                    <div class="collapse-toggle" data-target="#narrativeBody">
+                        <h6>Clinical Narrative</h6>
+                        <span class="muted">Tap to expand</span>
+                    </div>
+                    <div id="narrativeBody" class="mt-2" style="display:none;">
+                        <span id="narrativeText">{{ narrative }}</span>
+                    </div>
+                </div>
+                {% endif %}
+
+                {% if not narrative %}
+                <div id="narrativeBox" class="section-card" style="display:none;">
+                    <div class="collapse-toggle" data-target="#narrativeBody">
+                        <h6>Clinical Narrative</h6>
+                        <span class="muted">Tap to expand</span>
+                    </div>
+                    <div id="narrativeBody" class="mt-2" style="display:none;">
+                        <span id="narrativeText"></span>
+                    </div>
+                </div>
+                {% endif %}
+                
+                {% if explanations %}
+                <div class="section-card">
+                    <div class="collapse-toggle" data-target="#insightsBody">
+                        <h6>Key Drivers (Clinical Insights)</h6>
+                        <span class="muted">Tap to expand</span>
+                    </div>
+                    <!-- Preview pills (reduces overload) -->
+                    <div id="insightsPreview" class="mt-2"></div>
+
+                    <div class="kpi-row mt-2">
+                        <div class="muted">Showing the top drivers; expand for full details.</div>
+                        <div class="mini-actions">
+                            <button type="button" id="toggleInsightsBtn" class="mini-link">Expand details</button>
+                        </div>
+                    </div>
+
+                    <div id="insightsBody" class="mt-2" style="display:none;">
+                    <ul id="insightsList" class="mb-0">
+                        {% for exp in explanations %}
+                            <li>
+                                {% if loop.index == 1 %}
+                                    <strong>Primary Driver:</strong> {{ exp }}
+                                {% elif loop.index == 2 %}
+                                    <strong>Secondary Driver:</strong> {{ exp }}
+                                {% else %}
+                                    <strong>Additional Driver:</strong> {{ exp }}
+                                {% endif %}
+                            </li>
+                        {% endfor %}
+                    </ul>
+                    </div>
+                </div>
+                {% endif %}
+
+                {% if not explanations %}
+                <div id="insightsBox" class="section-card" style="display:none;">
+                    <div class="collapse-toggle" data-target="#insightsBody">
+                        <h6>Key Drivers (Clinical Insights)</h6>
+                        <span class="muted">Tap to expand</span>
+                    </div>
+                    <div id="insightsPreview" class="mt-2"></div>
+                    <div class="kpi-row mt-2">
+                        <div class="muted">Showing the top drivers; expand for full details.</div>
+                        <div class="mini-actions">
+                            <button type="button" id="toggleInsightsBtn" class="mini-link">Expand details</button>
+                        </div>
+                    </div>
+                    <div id="insightsBody" class="mt-2" style="display:none;">
+                        <ul id="insightsList"></ul>
+                    </div>
+                </div>
+                {% endif %}
+
+                {% if errors %}
+                <div class="alert alert-danger mt-3">
+                    <ul>
+                        {% for err in errors %}
+                        <li>{{ err }}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                {% endif %}
+
+                {% if report %}
+                <div class="section-card">
+                    <div class="collapse-toggle" data-target="#reportBody">
+                        <h6>Clinical Report</h6>
+                        <span class="muted">Tap to expand</span>
+                    </div>
+                    <div id="reportBody" class="mt-2" style="display:none;">
+                        <p class="mb-2"><strong>Risk Interpretation:</strong> <span id="reportInterpretation">{{ report.interpretation }}</span></p>
+                        <p class="mb-2"><strong>Recommendations</strong></p>
+                        <ul id="reportRecs" class="mb-0">
+                            {% for r in report.recommendations %}
+                            <li>{{ r }}</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </div>
+                {% endif %}
+
+                {% if not report %}
+                <div id="reportBox" class="section-card" style="display:none;">
+                    <div class="collapse-toggle" data-target="#reportBody">
+                        <h6>Clinical Report</h6>
+                        <span class="muted">Tap to expand</span>
+                    </div>
+                    <div id="reportBody" class="mt-2" style="display:none;">
+                        <p class="mb-2"><strong>Risk Interpretation:</strong> <span id="reportInterpretation"></span></p>
+                        <p class="mb-2"><strong>Recommendations</strong></p>
+                        <ul id="reportRecs" class="mb-0"></ul>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+
+            <p class="mt-3 text-center" style="font-size:13px;">
+                <a href="https://www.allbusinesstemplates.com/thumbs/c0cc5eed-c17d-4e24-8650-d8069bbbb52e_1.png">
+                    Need help understanding these fields?
+                </a>
+            </p>
+
+        </form>
+    </div>
+</div>
+
+<!-- React (island) - UMD builds (no bundler needed) -->
+<script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+
+<script>
+const formEl = document.getElementById("riskForm");
+const predictBtn = document.getElementById("predictBtn");
+const simulateBtn = document.getElementById("simulateBtn");
+const loadingEl = document.getElementById("loading");
+const resultContainer = document.getElementById("resultContainer");
+const mainResult = document.getElementById("main-result");
+
+let lastPredictedRiskScore = null;
+const BASELINE_KEY = "lastPredictedRiskScore";
+
+function loadBaseline() {
+    const v = sessionStorage.getItem(BASELINE_KEY);
+    const n = v == null ? null : Number(v);
+    lastPredictedRiskScore = Number.isFinite(n) ? n : null;
+}
+
+function saveBaseline(n) {
+    if (Number.isFinite(n)) {
+        lastPredictedRiskScore = n;
+        sessionStorage.setItem(BASELINE_KEY, String(n));
+    }
+}
+
+loadBaseline();
+
+function setRiskClass(cssClass) {
+    mainResult.classList.remove("low-risk", "moderate-risk", "high-risk");
+    if (cssClass) mainResult.classList.add(cssClass);
+
+    const badge = document.getElementById("riskBadge");
+    if (badge) {
+        badge.classList.remove("low-risk", "moderate-risk", "high-risk");
+        if (cssClass) badge.classList.add(cssClass);
+    }
+}
+
+function setRiskBar(scorePercent, riskCss) {
+    const bar = document.getElementById("riskBar");
+    if (!bar) return;
+
+    const width = Math.max(0, Math.min(100, Number(scorePercent) || 0));
+    bar.style.width = `${width}%`;
+
+    bar.classList.remove("risk-bar-low", "risk-bar-moderate", "risk-bar-high");
+    if (riskCss === "low-risk") bar.classList.add("risk-bar-low");
+    else if (riskCss === "moderate-risk") bar.classList.add("risk-bar-moderate");
+    else bar.classList.add("risk-bar-high");
+}
+
+function initCollapsibles() {
+    document.querySelectorAll(".collapse-toggle").forEach((el) => {
+        if (el.dataset.bound === "1") return;
+        el.dataset.bound = "1";
+
+        el.addEventListener("click", () => {
+            const targetSel = el.getAttribute("data-target");
+            if (!targetSel) return;
+            const target = document.querySelector(targetSel);
+            if (!target) return;
+            target.style.display = target.style.display === "none" ? "block" : "none";
+        });
+    });
+}
+
+function renderInsightsPreview(insights) {
+    const preview = document.getElementById("insightsPreview");
+    if (!preview) return;
+
+    preview.innerHTML = "";
+    (insights || []).slice(0, 3).forEach((text, idx) => {
+        const span = document.createElement("span");
+        span.className = `pill ${idx === 0 ? "primary" : idx === 1 ? "secondary" : "additional"}`;
+        span.textContent = text;
+        preview.appendChild(span);
+    });
+}
+
+function initInsightsToggle() {
+    const btn = document.getElementById("toggleInsightsBtn");
+    const body = document.getElementById("insightsBody");
+    if (!btn || !body) return;
+
+    if (btn.dataset.bound === "1") return;
+    btn.dataset.bound = "1";
+
+    btn.addEventListener("click", () => {
+        const isHidden = body.style.display === "none";
+        body.style.display = isHidden ? "block" : "none";
+        btn.textContent = isHidden ? "Collapse details" : "Expand details";
+    });
+}
+
+function renderComparison(data) {
+    const box = document.getElementById("comparisonBox");
+    const prevEl = document.getElementById("previousRiskScore");
+    const deltaEl = document.getElementById("deltaPercent");
+    const trendEl = document.getElementById("comparisonTrend");
+    if (!box || !prevEl || !deltaEl || !trendEl) return;
+
+    const prev = data?.previous_risk_score_percent;
+    const delta = data?.delta_percent;
+    const trend = data?.trend_text;
+
+    if (prev === null || typeof prev === "undefined") {
+        box.style.display = "none";
+        return;
+    }
+
+    box.style.display = "block";
+    prevEl.textContent = Number(prev).toFixed(2);
+    deltaEl.textContent = Number(delta || 0).toFixed(2);
+    trendEl.textContent = trend ? `Risk ${trend} vs previous` : "";
+}
+
+function renderEdgeWarnings(warnings) {
+    const box = document.getElementById("edgeWarningsBox");
+    const list = document.getElementById("edgeWarningsList");
+    if (!box || !list) return;
+
+    const items = Array.isArray(warnings) ? warnings.filter(Boolean) : [];
+    if (!items.length) {
+        box.style.display = "none";
+        list.innerHTML = "";
+        return;
+    }
+
+    box.style.display = "block";
+    list.innerHTML = "";
+    items.forEach((w) => {
+        const li = document.createElement("li");
+        li.textContent = w;
+        list.appendChild(li);
+    });
+}
+
+function attachLiveHints() {
+    const bpInput = document.getElementById("bpInput");
+    const bpHint = document.getElementById("bpHint");
+    const cholInput = document.getElementById("cholInput");
+    const cholHint = document.getElementById("cholHint");
+    const maxhrInput = document.getElementById("maxhrInput");
+    const maxhrHint = document.getElementById("maxhrHint");
+    const ageInput = formEl.elements["age"];
+
+    if (bpInput && bpHint) {
+        bpInput.addEventListener("input", () => {
+            const v = Number(bpInput.value);
+            if (!v) {
+                bpHint.textContent = "";
+            } else if (v < 90) {
+                bpHint.textContent = "Very low resting BP — please double-check.";
+            } else if (v <= 120) {
+                bpHint.textContent = "Within normal range for many adults.";
+            } else if (v <= 139) {
+                bpHint.textContent = "Elevated blood pressure.";
+            } else if (v <= 159) {
+                bpHint.textContent = "Stage 1 hypertension range — ensure this value is correct.";
+            } else {
+                bpHint.textContent = "Very high blood pressure — please confirm the measurement.";
+            }
+        });
+    }
+
+    if (cholInput && cholHint) {
+        cholInput.addEventListener("input", () => {
+            const v = Number(cholInput.value);
+            if (!v) {
+                cholHint.textContent = "";
+            } else if (v < 200) {
+                cholHint.textContent = "Desirable total cholesterol range.";
+            } else if (v <= 239) {
+                cholHint.textContent = "Borderline high cholesterol.";
+            } else if (v <= 299) {
+                cholHint.textContent = "High cholesterol — ensure this value is correct.";
+            } else {
+                cholHint.textContent = "Very high cholesterol — please double-check.";
+            }
+        });
+    }
+
+    if (maxhrInput && maxhrHint) {
+        maxhrInput.addEventListener("input", () => {
+            const hr = Number(maxhrInput.value);
+            const age = ageInput ? Number(ageInput.value) : NaN;
+            if (!hr) {
+                maxhrHint.textContent = "";
+                return;
+            }
+            if (!age || !Number.isFinite(age)) {
+                if (hr < 90) {
+                    maxhrHint.textContent = "Very low maximum heart rate — please confirm.";
+                } else if (hr > 180) {
+                    maxhrHint.textContent = "Very high maximum heart rate — ensure this is accurate.";
+                } else {
+                    maxhrHint.textContent = "";
+                }
+                return;
+            }
+
+            const estMax = 220 - age;
+            const diff = hr - estMax;
+
+            if (diff < -30) {
+                maxhrHint.textContent = "Lower than expected for this age — please double-check.";
+            } else if (diff > 30) {
+                maxhrHint.textContent = "Higher than expected for this age — ensure this is correct.";
+            } else {
+                maxhrHint.textContent = "Within an expected range for this age.";
+            }
+        });
+    }
+}
+
+// React island: render hero KPI only (no build tooling)
+function mountReactIsland() {
+    if (!window.React || !window.ReactDOM) return;
+    const root = document.getElementById("riskHeroRoot");
+    if (!root) return;
+
+    window.renderRiskHero = function renderRiskHero(state) {
+        const score = state?.risk_score_percent;
+        const level = state?.risk_level;
+        const css = state?.risk_css;
+        const safeScore = Number.isFinite(Number(score)) ? Number(score) : null;
+        const safeLevel = typeof level === "string" ? level : "--";
+
+        const badgeStyle =
+            css === "low-risk" ? { borderColor: "rgba(16,185,129,0.35)" } :
+            css === "moderate-risk" ? { borderColor: "rgba(234,179,8,0.35)" } :
+            css === "high-risk" ? { borderColor: "rgba(239,68,68,0.35)" } :
+            {};
+
+        const subtitle =
+            safeScore == null ? "Run prediction to generate a risk score." :
+            safeScore < 30 ? "Low risk — continue healthy habits." :
+            safeScore <= 70 ? "Moderate risk — consider targeted changes." :
+            "High risk — consider prompt medical evaluation.";
+
+        const el = window.React.createElement;
+
+        // Intentionally no-op for now to avoid duplicating the main hero KPI.
+        // We keep the React island wiring so we can later render a non-redundant component (e.g. driver chips).
+        root.innerHTML = "";
+        return;
+    };
+}
+
+mountReactIsland();
+initCollapsibles();
+attachLiveHints();
+initInsightsToggle();
+
+function showErrorList(errors) {
+    // Keep server-rendered error UX intact (Phase 1 minimal JS):
+    // show an alert() for now; we can convert to inline panel in #16.
+    if (Array.isArray(errors) && errors.length) {
+        alert(errors.join("\n"));
+    } else {
+        alert("Invalid input. Please check your values.");
+    }
+}
+
+function renderInsights(insights) {
+    const box = document.getElementById("insightsBox") || document.querySelector(".mt-3");
+    const list = document.getElementById("insightsList");
+    if (!list) return;
+
+    list.innerHTML = "";
+    (insights || []).forEach((text, idx) => {
+        const li = document.createElement("li");
+        const label =
+            idx === 0 ? "<strong>Primary Driver:</strong> " :
+            idx === 1 ? "<strong>Secondary Driver:</strong> " :
+                        "<strong>Additional Driver:</strong> ";
+        li.innerHTML = `${label}${text}`;
+        list.appendChild(li);
+    });
+
+    if (box) box.style.display = (insights && insights.length) ? "block" : "none";
+
+    renderInsightsPreview(insights);
+    initInsightsToggle();
+}
+
+function renderReport(report) {
+    const reportBox = document.getElementById("reportBox");
+    const interp = document.getElementById("reportInterpretation");
+    const recs = document.getElementById("reportRecs");
+    if (!reportBox || !interp || !recs) return;
+
+    interp.textContent = report?.interpretation || "";
+    recs.innerHTML = "";
+    (report?.recommendations || []).forEach(r => {
+        const li = document.createElement("li");
+        li.textContent = r;
+        recs.appendChild(li);
+    });
+
+    reportBox.style.display = report ? "block" : "none";
+}
+
+async function runPredictFlow({ mode }) {
+    loadingEl.style.display = "block";
+    if (mode === "predict") {
+        predictBtn.disabled = true;
+        predictBtn.innerText = "Processing...";
+    } else {
+        simulateBtn.disabled = true;
+        simulateBtn.innerText = "Simulating...";
+    }
+
+    try {
+        const formData = new FormData(formEl);
+
+        const payload = {
+            age: formData.get("age"),
+            cp: formData.get("r1"),
+            bp: formData.get("BP"),
+            chol: formData.get("CH"),
+            maxhr: formData.get("maxhr"),
+            std: formData.get("STD"),
+            fluro: formData.get("fluro"),
+            th: formData.get("Th"),
+        };
+
+        const res = await fetch("/predict", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload),
+            credentials: "same-origin",
+        });
+
+        const data = await res.json().catch(() => ({}));
+
+        if (!res.ok) {
+            if (res.status === 401) {
+                window.location.href = "/login";
+                return;
+            }
+            showErrorList(data.errors);
+            return;
+        }
+
+        // Show result container if previously hidden
+        resultContainer.classList.remove("d-none");
+        resultContainer.style.display = "block";
+        mainResult.style.display = "block";
+
+        // Core result
+        document.getElementById("riskScore").textContent = data.risk_score_percent ?? "--";
+        document.getElementById("riskLevel").textContent = data.risk_level ?? "--";
+        setRiskClass(data.risk_css);
+        setRiskBar(data.risk_score_percent, data.risk_css);
+        initCollapsibles();
+
+        const confLevelEl = document.getElementById("confidenceLevel");
+        const confNoteEl = document.getElementById("confidenceNote");
+        if (confLevelEl) confLevelEl.textContent = data.confidence_level || "—";
+        if (confNoteEl) confNoteEl.textContent = data.confidence_note ? ` — ${data.confidence_note}` : "";
+
+        const stabilityEl = document.getElementById("stabilityNote");
+        if (stabilityEl) {
+            if (data.stability_near_threshold && data.stability_note) {
+                stabilityEl.style.display = "block";
+                stabilityEl.textContent = data.stability_note;
+            } else {
+                stabilityEl.style.display = "none";
+                stabilityEl.textContent = "";
+            }
+        }
+
+        renderEdgeWarnings(data.edge_warnings);
+        renderComparison(data);
+
+        if (typeof window.renderRiskHero === "function") {
+            window.renderRiskHero(data);
+        }
+
+        const currentScore = typeof data.risk_score_percent === "number"
+            ? data.risk_score_percent
+            : Number(data.risk_score_percent);
+
+        // If this was a simulation run, compute delta vs last prediction
+        if (mode === "simulate") {
+            const simBox = document.getElementById("simulationBox");
+            const simRiskScore = document.getElementById("simRiskScore");
+            const simChange = document.getElementById("simChange");
+            const simTrend = document.getElementById("simTrend");
+            const simInsight = document.getElementById("simInsight");
+
+            if (simBox) simBox.style.display = "block";
+
+            if (simRiskScore) simRiskScore.textContent = Number.isFinite(currentScore) ? currentScore.toFixed(2) : "--";
+
+            if (lastPredictedRiskScore == null || !Number.isFinite(lastPredictedRiskScore) || !Number.isFinite(currentScore)) {
+                if (simChange) simChange.textContent = "--";
+                if (simTrend) simTrend.textContent = "no baseline";
+                if (simInsight) simInsight.textContent = "Run a risk prediction first to establish a baseline, then simulate changes.";
+            } else {
+                const change = Number((currentScore - lastPredictedRiskScore).toFixed(2));
+                const trend = change > 0 ? "increase" : change < 0 ? "decrease" : "no change";
+                if (simChange) simChange.textContent = change.toFixed(2);
+                if (simTrend) simTrend.textContent = trend;
+                if (simInsight) simInsight.textContent =
+                    change === 0 ? "No change detected. Modify inputs to simulate different scenarios."
+                    : change > 0 ? "Risk increased compared to your last prediction."
+                    : "Risk decreased compared to your last prediction.";
+            }
+        } else {
+            // This was a baseline prediction
+            saveBaseline(currentScore);
+        }
+
+        // Summary
+        const summaryBox = document.getElementById("summaryBox");
+        if (summaryBox) summaryBox.style.display = data.summary ? "block" : "none";
+        const summaryText = document.getElementById("summaryText");
+        if (summaryText) summaryText.textContent = data.summary || "";
+
+        // Narrative
+        const narrativeBox = document.getElementById("narrativeBox");
+        if (narrativeBox) narrativeBox.style.display = data.clinical_narrative ? "block" : "none";
+        const narrativeText = document.getElementById("narrativeText");
+        if (narrativeText) narrativeText.textContent = data.clinical_narrative || "";
+
+        // Insights + report
+        renderInsights(data.clinical_insights || []);
+        renderReport(data.clinical_report || null);
+
+        // Scroll to main result (keep old behavior)
+        setTimeout(() => {
+            const container = document.querySelector(".right");
+            const result = document.getElementById("main-result");
+            if (result && container) {
+                container.scrollTo({ top: result.offsetTop - 50, behavior: "smooth" });
+            }
+        }, 50);
+
+    } catch (err) {
+        alert("Something went wrong while predicting. Please try again.");
+    } finally {
+        loadingEl.style.display = "none";
+        predictBtn.disabled = false;
+        predictBtn.innerText = "Run Risk Prediction";
+        simulateBtn.disabled = false;
+        simulateBtn.innerText = "Simulate Changes";
+    }
+}
+
+formEl.addEventListener("submit", async function (e) {
+    const submitter = e.submitter;
+    if (!submitter || submitter.id !== "predictBtn") return;
+    e.preventDefault();
+    await runPredictFlow({ mode: "predict" });
+});
+
+simulateBtn.addEventListener("click", async function () {
+    await runPredictFlow({ mode: "simulate" });
+});
+
+window.addEventListener("load", function () {
+    setTimeout(() => {
+        const container = document.querySelector(".right");
+        const result = document.getElementById("main-result");
+
+        if (result && container) {
+            container.scrollTo({
+                top: result.offsetTop - 50,
+                behavior: "smooth"
+            });
+        }
+    }, 100);
+});
+</script>
+
+</body>
+</html>

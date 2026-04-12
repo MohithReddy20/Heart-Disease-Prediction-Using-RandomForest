@@ -1,0 +1,19 @@
+# Render.com — one Web Service: Flask + built React (same URL, cookies work).
+# Dashboard: New → Web Service → connect this repo.
+# Set environment: FLASK_SECRET_KEY (or use Render "Generate"), optional MAIL_* for email.
+services:
+  - type: web
+    name: heart-risk-ai
+    runtime: python
+    plan: free
+    buildCommand: chmod +x scripts/build.sh && ./scripts/build.sh && pip install -r requirements.txt
+    startCommand: cd p1_heartdiseaseprediction && gunicorn app:app --bind 0.0.0.0:$PORT --workers 1
+    envVars:
+      - key: PYTHON_VERSION
+        value: "3.12.3"
+      - key: NODE_VERSION
+        value: "20.18.0"
+      - key: FLASK_ENV
+        value: production
+      - key: FLASK_SECRET_KEY
+        generateValue: true

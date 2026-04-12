@@ -1,0 +1,62 @@
+.
+├── dbrun.py
+├── frontend
+│   ├── eslint.config.js
+│   ├── index.html
+│   ├── package.json
+│   ├── package-lock.json
+│   ├── postcss.config.js
+│   ├── public
+│   │   ├── favicon.svg
+│   │   └── icons.svg
+│   ├── README.md
+│   ├── src
+│   │   ├── App.jsx
+│   │   ├── assets
+│   │   │   ├── hero.png
+│   │   │   └── vite.svg
+│   │   ├── components
+│   │   │   ├── domain
+│   │   │   └── ui
+│   │   ├── hooks
+│   │   ├── index.css
+│   │   ├── layouts
+│   │   │   ├── Applayout.jsx
+│   │   │   └── Authlayout.jsx
+│   │   ├── main.jsx
+│   │   ├── pages
+│   │   │   ├── Dashboard.jsx
+│   │   │   ├── Forgot.jsx
+│   │   │   ├── History.jsx
+│   │   │   ├── Login.jsx
+│   │   │   ├── Prediction.jsx
+│   │   │   └── Signup.jsx
+│   │   ├── services
+│   │   │   └── api.js
+│   │   └── utils
+│   ├── tailwind.config.js
+│   └── vite.config.js
+├── Heart_Disease_Prediction.csv
+├── mohithheart.db
+├── negatives and improvements.txt
+├── p1_heartdiseaseprediction
+│   ├── app.log
+│   ├── app.py
+│   ├── confusion_matrix.png
+│   ├── heartdiseaseprediction.model
+│   ├── mohithheart.db
+│   ├── p1.py
+│   ├── roc_curve.png
+│   └── templates
+│       ├── check.html
+│       ├── find.html
+│       ├── forgot.html
+│       ├── history.html
+│       ├── home.html
+│       ├── login.html
+│       └── signup.html
+├── README.md
+├── structure.txt
+└── todo.txt
+
+15 directories, 45 files

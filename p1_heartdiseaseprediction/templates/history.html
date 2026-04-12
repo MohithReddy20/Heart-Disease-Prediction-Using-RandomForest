@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Risk Assessment History</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+
+<body class="bg-light">
+
+<div class="container mt-5">
+
+    <h3 class="mb-4">Risk Assessment History</h3>
+
+    {% if trend %}
+    <div class="alert mt-3
+        {% if trend == 'increasing' %}
+            alert-danger
+        {% elif trend == 'decreasing' %}
+            alert-success
+        {% else %}
+            alert-secondary
+        {% endif %}
+    ">
+
+        <strong>Risk Trend:</strong>
+
+        {% if trend == 'increasing' %}
+            Your risk is increasing compared to your last assessment.
+        {% elif trend == 'decreasing' %}
+            Your risk is decreasing compared to your last assessment.
+        {% else %}
+            Your risk remains stable compared to your last assessment.
+        {% endif %}
+
+    </div>
+    {% endif %}
+
+    <table class="table table-bordered table-striped">
+        <thead class="table-dark">
+            <tr>
+                <th>Date</th>
+                <th>Age</th>
+                <th>BP</th>
+                <th>Chol</th>
+                <th>Heart Disease Likelihood</th>
+                <th>Risk Score (%)</th>
+                <th>Risk Level</th>
+            </tr>
+        </thead>
+
+        <tbody>
+{% for row in rows %}
+<tr>
+    <td>{{ row[10] }}</td>
+    <td>{{ row[0] }}</td>
+    <td>{{ row[2] }}</td>
+    <td>{{ row[3] }}</td>
+
+    <td>
+        {% if row[8] == 1 %}
+            <span class="badge bg-danger">Likely</span>
+        {% else %}
+            <span class="badge bg-success">Unlikely</span>
+        {% endif %}
+    </td>
+
+            <td>{{ row[11] }}%</td>
+
+            <td>
+                {% if row[12] == 'Low' %}
+                    <span class="text-success fw-bold">Low</span>
+                {% elif row[12] == 'Moderate' %}
+                    <span class="text-warning fw-bold">Moderate</span>
+                {% else %}
+                    <span class="text-danger fw-bold">High</span>
+                {% endif %}
+            </td>
+        </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+
+    <a href="{{ url_for('home') }}" class="btn btn-secondary mt-3">
+        Back to Home
+    </a>
+
+</div>
+
+</body>
+</html>
