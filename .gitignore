@@ -1,2 +1,11 @@
 # Vite build output copied for Flask (regenerate with scripts/build.sh)
 p1_heartdiseaseprediction/static/spa/
+
+# Python
+venv/
+.venv/
+__pycache__/
+*.py[cod]
+.Python
+*.egg-info/
+.eggs/
