@@ -693,8 +693,10 @@ def last_prediction():
 
         row = cursor.fetchone()
 
+    # Empty history is normal for new users — use 200 so clients/network panels
+    # don't treat this as a "Not Found" route error (404).
     if not row:
-        return jsonify({"message": "No data"}), 404
+        return jsonify({"score": None, "level": None, "message": "No saved predictions yet"}), 200
 
     prob_percent = float(row[0]) * 100
 

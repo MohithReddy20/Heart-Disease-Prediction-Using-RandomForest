@@ -23,7 +23,11 @@ export default function Dashboard() {
     const fetchLastPrediction = async () => {
       try {
         const res = await api.get("/last_prediction");
-        setRisk(res.data);
+        if (res.data?.score == null) {
+          setRisk(null);
+        } else {
+          setRisk(res.data);
+        }
       } catch {
         setRisk(null);
       }

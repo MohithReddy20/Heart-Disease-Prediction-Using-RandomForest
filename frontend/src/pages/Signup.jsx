@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import api from "../services/api";
 
@@ -8,6 +8,8 @@ export default function Signup() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+  /** Blocks a second submit before React re-renders `disabled` on the button (double-click race). */
+  const submitLock = useRef(false);
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -15,6 +17,8 @@ export default function Signup() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (submitLock.current) return;
+    submitLock.current = true;
     setLoading(true);
     setError("");
     setSuccess("");
@@ -33,6 +37,7 @@ export default function Signup() {
     } catch (err) {
       setError(err.response?.data?.message || "Signup failed. Try again.");
     } finally {
+      submitLock.current = false;
       setLoading(false);
     }
   };
@@ -96,7 +101,8 @@ export default function Signup() {
             </div>
           ) : null}
 
-          <form onSubmit={handleSubmit} className="space-y-5">
+          <form onSubmit={handleSubmit} className="space-y-5" aria-busy={loading}>
+            <fieldset disabled={loading} className="space-y-5 border-0 p-0 m-0 min-w-0">
             <div>
               <label htmlFor="signup-username" className="text-sm text-gray-300 mb-1 block">
                 Username
@@ -131,11 +137,11 @@ export default function Signup() {
             </div>
             <button
               type="submit"
-              disabled={loading}
               className="w-full py-3 rounded-xl bg-gradient-to-r from-teal-500 to-teal-600 text-white font-medium hover:from-teal-400 hover:to-teal-500 disabled:opacity-60 transition shadow-lg shadow-teal-900/20"
             >
               {loading ? "Creating…" : "Create account"}
             </button>
+            </fieldset>
           </form>
 
           <p className="text-xs text-gray-400 text-center mt-4 leading-relaxed">
